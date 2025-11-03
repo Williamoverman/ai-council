@@ -1,0 +1,134 @@
+version: '3.8'
+
+services:
+  # Council Member 1: The Analyst (Qwen 2.5 3B)
+  analyst-ai:
+    image: ghcr.io/ggerganov/llama.cpp:server-cuda
+    container_name: analyst-ai
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./models:/models
+    environment:
+      - LLAMA_ARG_MODEL=/models/qwen2.5-3b-instruct-q4_k_m.gguf
+      - LLAMA_ARG_CTX_SIZE=2048
+      - LLAMA_ARG_N_GPU_LAYERS=99
+      - LLAMA_ARG_BATCH=512
+      - LLAMA_ARG_HOST=0.0.0.0
+      - LLAMA_ARG_PORT=8080
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+
+  # Council Member 2: The Creative (Llama 3.2 1B)
+  creative-ai:
+    image: ghcr.io/ggerganov/llama.cpp:server-cuda
+    container_name: creative-ai
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./models:/models
+    environment:
+      - LLAMA_ARG_MODEL=/models/llama-3.2-1b-instruct-q4_0.gguf
+      - LLAMA_ARG_CTX_SIZE=2048
+      - LLAMA_ARG_N_GPU_LAYERS=99
+      - LLAMA_ARG_BATCH=512
+      - LLAMA_ARG_HOST=0.0.0.0
+      - LLAMA_ARG_PORT=8080
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+
+  # Council Member 3: The Critic (Phi-3.5 Mini)
+  critic-ai:
+    image: ghcr.io/ggerganov/llama.cpp:server-cuda
+    container_name: critic-ai
+    ports:
+      - "8083:8080"
+    volumes:
+      - ./models:/models
+    environment:
+      - LLAMA_ARG_MODEL=/models/phi-3.5-mini-instruct-q4_k_m.gguf
+      - LLAMA_ARG_CTX_SIZE=2048
+      - LLAMA_ARG_N_GPU_LAYERS=99
+      - LLAMA_ARG_BATCH=512
+      - LLAMA_ARG_HOST=0.0.0.0
+      - LLAMA_ARG_PORT=8080
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+
+  # Council Member 4: The Pragmatist (Gemma 2 2B)
+  pragmatist-ai:
+    image: ghcr.io/ggerganov/llama.cpp:server-cuda
+    container_name: pragmatist-ai
+    ports:
+      - "8084:8080"
+    volumes:
+      - ./models:/models
+    environment:
+      - LLAMA_ARG_MODEL=/models/gemma-2-2b-instruct-q4_k_m.gguf
+      - LLAMA_ARG_CTX_SIZE=2048
+      - LLAMA_ARG_N_GPU_LAYERS=99
+      - LLAMA_ARG_BATCH=512
+      - LLAMA_ARG_HOST=0.0.0.0
+      - LLAMA_ARG_PORT=8080
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+
+  # Web Search
+  searxng:
+    image: searxng/searxng:latest
+    container_name: council-search
+    ports:
+      - "8888:8080"
+    volumes:
+      - ./config/searxng:/etc/searxng
+    environment:
+      - SEARXNG_BASE_URL=http://localhost:8888/
+    restart: unless-stopped
+
+  # API Manager
+  council-api:
+    build: ./api-ai-council
+    container_name: council-manager
+    ports:
+      - "3000:3000"
+    environment:
+      - ANALYST_ENDPOINT=http://analyst-ai:8080
+      - CREATIVE_ENDPOINT=http://creative-ai:8080
+      - CRITIC_ENDPOINT=http://critic-ai:8080
+      - PRAGMATIST_ENDPOINT=http://pragmatist-ai:8080
+      - SEARCH_ENDPOINT=http://searxng:8080
+    depends_on:
+      - analyst-ai
+      - creative-ai
+      - critic-ai
+      - pragmatist-ai
+      - searxng
+    restart: unless-stopped
+
+networks:
+  default:
+    name: ai-council-network

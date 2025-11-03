@@ -1,0 +1,9 @@
+# ai models downloaded
+/models
+
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.local
