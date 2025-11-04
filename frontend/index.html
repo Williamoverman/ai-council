@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./style.css" type="text/css" />
+    <link rel="stylesheet" href="./info.css" type="text/css" />
+    <link rel="stylesheet" href="./chat.css" type="text/css" />
     <title>AI Council</title>
 </head>
 <body>
@@ -33,131 +35,192 @@
             </article>
         </section>
         <section class="chat">
-            
+            <header>
+                <article class="toggle-controls">
+                    <div class="toggle-item">
+                        <label class="switch">
+                            <input type="checkbox" id="websearchToggle">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label">🔍 Web Search</span>
+                    </div>
+                    <div class="toggle-item">
+                        <label class="switch">
+                            <input type="checkbox" id="synthesizerToggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label">⚡ Synthesizer</span>
+                    </div>
+                    <div class="toggle-item">
+                        <label class="switch">
+                            <input type="checkbox" id="consensusToggle">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label">Consensus Only</span>
+                    </div>
+                </article>
+            </header>
+            <article class="chat-messages" id="messages">
+                <div class="message system">
+                    <span class="prefix">&gt;</span> Council standing by.
+                </div>
+            </article>
+            <form class="chat-input" id="chatForm">
+                <input type="text" id="messageInput" placeholder="Enter your query..." autocomplete="off">
+                <button type="submit">&gt;</button>
+            </form>
         </section>
     </main>
 </body>
 </html>
 
-<style>
-    header {
-        display: flex;
-        align-items: center;
-        justify-content : center;
-        max-height: 10vh;
-        font-family: 'Space Mono', monospace;
-    }
-    header h1 {
-        letter-spacing: 5px;
-        font-size: 2rem;
-        font-weight: 900;
-        text-shadow: 0 0 10px var(--primary);
-    }
-    body {
-        margin: 0;
-        padding: 0;
-        background-color: var(--bg-main);
-        color: var(--primary);
-    }
-    .wrapper {
-        display: flex;
-        height: 100vh;
-        width: 100vw;
-    }
-
-    .info {
-        width: 20vw;
-        background-color: var(--bg-card);
-        cursor: pointer;
-        overflow: hidden;
-        border-right: 1px solid var(--primary);
-        transition: width 0.3s ease, border-color 0.3s ease;
-        position: relative;
-        user-select: none;
-    }
-    .info.collapsed {
-        width: 50px;
-        border-right: 1px solid var(--secondary);
-    }
-    .info.collapsed header h1, .info.collapsed .council-status { opacity: 0; }
-    .info.collapsed .collapse-arrow { opacity: 1; }
-    .collapse-arrow {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content : center;
-        max-height: 10vh;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        font-size: 2rem;
-        font-weight: 900;
-        text-shadow: 0 0 10px var(--secondary);
-        color: var(--secondary);
-    }
-    .council-status {
-        margin-left: 3rem;
-        font-family: 'Space Mono', monospace;
-        position: absolute;
-        padding-top: 5rem;
-    }
-    .council-status span { font-family: 'Rajdhani', sans-serif; }
-    .analyst h2 {
-        color: var(--ai-analyst);
-        text-shadow: 0 0 5px var(--ai-analyst);
-    }
-    .creative h2 {
-        color: var(--ai-creative);
-        text-shadow: 0 0 5px var(--ai-creative);
-    }
-    .critic h2 {
-        color: var(--ai-critic);
-        text-shadow: 0 0 5px var(--ai-critic);
-    }
-    .pragmatist h2 {
-        color: var(--ai-pragmatist);
-        text-shadow: 0 0 5px var(--ai-pragmatist);
-    }
-    .online { color: var(--status-online); }
-    .offline { color: var(--status-offline); }
-    .unknown { color:#666; }
-
-    .chat {
-        flex: 1;
-    }
-</style>
-
 <script defer>
+    const API_BASE = 'http://localhost:3000';
+
     function toggleSidebar() {
         document.getElementById('sidebar').classList.toggle('collapsed');
     }
 
-        async function updateStatuses() {
-            try {
-                const response = await fetch('http://localhost:3000/health');
-                const data = await response.json();
-                const council = data.council || {};
+    async function updateStatuses() {
+        try {
+            const response = await fetch(`${API_BASE}/health`);
+            const data = await response.json();
+            const council = data.council || {};
 
-                // Map members to DOM elements
-                const members = ['analyst', 'creative', 'critic', 'pragmatist'];
-                members.forEach(member => {
-                    const statusEl = document.querySelector(`[data-member="${member}"]`);
-                    if (!statusEl) return;
+            // Map members to DOM elements
+            const members = ['analyst', 'creative', 'critic', 'pragmatist'];
+            members.forEach(member => {
+                const statusEl = document.querySelector(`[data-member="${member}"]`);
+                if (!statusEl) return;
 
-                    const status = council[member];
-                    statusEl.textContent = `●  ${status?.toUpperCase() || 'UNKNOWN'}`;
-                    statusEl.className = `status ${status || 'unknown'}`;
-                });
-            } catch (error) {
-                console.error('Failed to fetch statuses:', error);
+                const status = council[member];
+                statusEl.textContent = `●  ${status?.toUpperCase() || 'UNKNOWN'}`;
+                statusEl.className = `status ${status || 'unknown'}`;
+            });
+        } catch (error) {
+            console.error('Failed to fetch statuses:', error);
 
-                document.querySelectorAll('.status').forEach(el => {
-                    el.textContent = '●  UNKNOWN';
-                    el.className = 'status unknown';
-                });
-            }
+            document.querySelectorAll('.status').forEach(el => {
+                el.textContent = '●  UNKNOWN';
+                el.className = 'status unknown';
+            });
+        }
+    }
+
+    const chatForm = document.getElementById('chatForm');
+    const messageInput = document.getElementById('messageInput');
+    const messagesContainer = document.getElementById('messages');
+    const websearchToggle = document.getElementById('websearchToggle');
+    const synthesizerToggle = document.getElementById('synthesizerToggle');
+    const consensusToggle = document.getElementById('consensusToggle');
+
+    function addMessage(text, type = 'system', member = null) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}`;
+
+        if (member) {
+            const header = document.createElement('div');
+            header.className = 'message-header';
+            header.textContent = `[${member.toUpperCase()}]`;
+            messageDiv.appendChild(header);
         }
 
-        updateStatuses();
-        setInterval(updateStatuses, 10000);
+        const content = document.createElement('div');
+        if (type === 'system' || type === 'user')
+            content.innerHTML = `<span class="prefix">&gt;</span> ${text}`;
+        else
+            content.textContent = text;
+
+        messageDiv.appendChild(content);
+
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const message = messageInput.value.trim();
+        if (!message) return;
+
+        addMessage(message, 'user');
+        messageInput.value = '';
+
+        const useSearch = websearchToggle.checked;
+        const useSynthesizer = synthesizerToggle.checked;
+        const isConsensusOnly = consensusToggle.checked;
+
+        let statusParts = [];
+        if (useSearch) statusParts.push('🔍 Web Search');
+        if (useSynthesizer) statusParts.push('⚡ Synthesizer');
+        if (isConsensusOnly) statusParts.push('📊 Consensus Only');
+
+        const statusMsg = statusParts.length > 0 
+            ? `Mode: ${statusParts.join(' + ')}` 
+            : 'Mode: Direct responses';
+        addMessage(statusMsg, 'system');
+
+        try {
+            if (isConsensusOnly) {
+                addMessage(`Generating ${currentMode.toUpperCase()} consensus...`, 'system');
+                
+                const response = await fetch(`${API_BASE}/council/consensus`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: message,
+                        useSearch: useSearch
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    addMessage(`Error: ${data.error}`, 'system');
+                } else {
+                    addMessage(`Council Consensus (based on ${data.basedOn}):`, 'system');
+                    addMessage(data.consensus, 'consensus');
+                }
+            } else {
+                addMessage('Consulting council members...', 'system');
+                
+                const response = await fetch(`${API_BASE}/council`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: message,
+                        useSearch: useSearch,
+                        synthesize: useSynthesizer
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    addMessage(`Error: ${data.error}`, 'system');
+                    return;
+                }
+
+                data.responses.forEach(resp => {
+                    if (resp.error) {
+                        addMessage(`${resp.member}: Error occurred`, 'system');
+                    } else {
+                        addMessage(resp.response, 'member', resp.model);
+                    }
+                });
+
+                if (useSynthesizer && data.consensus) {
+                    addMessage('--- CONSENSUS ---', 'system');
+                    addMessage(data.consensus, 'consensus');
+                } else if (useSynthesizer && data.consensusError) {
+                    addMessage(`Consensus Error: ${data.consensusError}`, 'system');
+                }
+            }
+        } catch (error) {
+            addMessage('Failed to connect to council API. Make sure the server is running on port 3000.', 'system');
+        }
+    });
+
+    updateStatuses();
+    setInterval(updateStatuses, 10000);
 </script>

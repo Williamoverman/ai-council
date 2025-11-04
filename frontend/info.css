@@ -1,0 +1,81 @@
+    header {
+        display: flex;
+        align-items: center;
+        justify-content : center;
+        max-height: 10vh;
+        font-family: 'Space Mono', monospace;
+    }
+    header h1 {
+        letter-spacing: 5px;
+        font-size: 2rem;
+        font-weight: 900;
+        text-shadow: 0 0 10px var(--primary);
+    }
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: var(--bg-main);
+        color: var(--primary);
+    }
+    .wrapper {
+        display: flex;
+        height: 100vh;
+        width: 100vw;
+    }
+
+    .info {
+        width: 20vw;
+        background-color: var(--bg-card);
+        cursor: pointer;
+        overflow: hidden;
+        border-right: 1px solid var(--primary);
+        transition: width 0.3s ease, border-color 0.3s ease;
+        position: relative;
+        user-select: none;
+    }
+    .info.collapsed {
+        width: 50px;
+        border-right: 1px solid var(--secondary);
+    }
+    .info.collapsed header h1, .info.collapsed .council-status { opacity: 0; }
+    .info.collapsed .collapse-arrow { opacity: 1; }
+    .collapse-arrow {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content : center;
+        max-height: 10vh;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        font-size: 2rem;
+        font-weight: 900;
+        text-shadow: 0 0 10px var(--secondary);
+        color: var(--secondary);
+    }
+    .council-status {
+        margin-left: 3rem;
+        font-family: 'Space Mono', monospace;
+        position: absolute;
+        padding-top: 5rem;
+    }
+    .council-status span { font-family: 'Rajdhani', sans-serif; }
+    .analyst h2 {
+        color: var(--ai-analyst);
+        text-shadow: 0 0 5px var(--ai-analyst);
+    }
+    .creative h2 {
+        color: var(--ai-creative);
+        text-shadow: 0 0 5px var(--ai-creative);
+    }
+    .critic h2 {
+        color: var(--ai-critic);
+        text-shadow: 0 0 5px var(--ai-critic);
+    }
+    .pragmatist h2 {
+        color: var(--ai-pragmatist);
+        text-shadow: 0 0 5px var(--ai-pragmatist);
+    }
+    .online { color: var(--status-online); }
+    .offline { color: var(--status-offline); }
+    .unknown { color:#666; }
