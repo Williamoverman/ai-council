@@ -129,6 +129,20 @@ services:
       - searxng
     restart: unless-stopped
 
+  # Web server
+  council-webapp:
+    build: ./frontend
+    container_name: council-webapp
+    ports:
+      - "8080:8080"
+    depends_on:
+      - analyst-ai
+      - creative-ai
+      - critic-ai
+      - pragmatist-ai
+      - searxng
+    restart: unless-stopped
+
 networks:
   default:
     name: ai-council-network

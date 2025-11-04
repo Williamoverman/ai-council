@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 import cors from 'cors';
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: 'http://localhost:8080' }));
 app.use(express.json());
 
 const SEARCH_ENDPOINT = process.env.SEARCH_ENDPOINT || 'http://localhost:8888';
