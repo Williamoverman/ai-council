@@ -171,16 +171,6 @@
         const useSynthesizer = synthesizerToggle.checked;
         const isConsensusOnly = consensusToggle.checked;
 
-        let statusParts = [];
-        if (useSearch) statusParts.push('🔍 Web Search');
-        if (useSynthesizer) statusParts.push('⚡ Synthesizer');
-        if (isConsensusOnly) statusParts.push('📊 Consensus Only');
-
-        const statusMsg = statusParts.length > 0 
-            ? `Mode: ${statusParts.join(' + ')}` 
-            : 'Mode: Direct responses';
-        addMessage(statusMsg, 'system');
-
         try {
             if (isConsensusOnly) {
                 addMessage(`Generating consensus...`, 'system');
