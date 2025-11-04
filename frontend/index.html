@@ -87,7 +87,6 @@
             const data = await response.json();
             const council = data.council || {};
 
-            // Map members to DOM elements
             const members = ['analyst', 'creative', 'critic', 'pragmatist'];
             members.forEach(member => {
                 const statusEl = document.querySelector(`[data-member="${member}"]`);
@@ -114,6 +113,23 @@
     const synthesizerToggle = document.getElementById('synthesizerToggle');
     const consensusToggle = document.getElementById('consensusToggle');
 
+    function getMemberClass(memberName) {
+        const norm = memberName
+            .toLowerCase()
+            .replace(/\s*\([^)]*\)/g, '')
+            .replace(/\bthe\b\s*/gi, '')
+            .trim();
+
+        const map = {
+            'analyst':     'analyst',
+            'creative':    'creative',
+            'critic':      'critic',
+            'pragmatist':  'pragmatist'
+        };
+
+        return map[norm] || '';
+    }
+
     function addMessage(text, type = 'system', member = null) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${type}`;
@@ -123,6 +139,11 @@
             header.className = 'message-header';
             header.textContent = `[${member.toUpperCase()}]`;
             messageDiv.appendChild(header);
+
+            const colorClass = getMemberClass(member);
+            if (colorClass) {
+                messageDiv.classList.add(colorClass);
+            }
         }
 
         const content = document.createElement('div');
@@ -162,7 +183,7 @@
 
         try {
             if (isConsensusOnly) {
-                addMessage(`Generating ${currentMode.toUpperCase()} consensus...`, 'system');
+                addMessage(`Generating consensus...`, 'system');
                 
                 const response = await fetch(`${API_BASE}/council/consensus`, {
                     method: 'POST',
@@ -175,12 +196,10 @@
 
                 const data = await response.json();
                 
-                if (data.error) {
+                if (data.error)
                     addMessage(`Error: ${data.error}`, 'system');
-                } else {
-                    addMessage(`Council Consensus (based on ${data.basedOn}):`, 'system');
+                else
                     addMessage(data.consensus, 'consensus');
-                }
             } else {
                 addMessage('Consulting council members...', 'system');
                 
@@ -205,7 +224,7 @@
                     if (resp.error) {
                         addMessage(`${resp.member}: Error occurred`, 'system');
                     } else {
-                        addMessage(resp.response, 'member', resp.model);
+                        addMessage(resp.response, 'member', resp.member);
                     }
                 });
 

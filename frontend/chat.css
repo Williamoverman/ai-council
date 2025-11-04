@@ -67,12 +67,10 @@
 .message.member {
     margin: 8px 0;
     padding: 8px;
-    border-left: 3px solid #00ffff;
 }
 
 .message-header {
     font-weight: bold;
-    color: #00ffff;
     margin-bottom: 5px;
     font-size: 0.85em;
 }
@@ -118,7 +116,7 @@ input:checked + .slider:before {
 
 .message.user {
     border-left-color: var(--secondary);
-    background-color: rgba(255, 0, 255, 0.05);
+    background-color: rgba(179, 107, 0, 0.12);
 }
 
 .message.system {
@@ -160,6 +158,16 @@ input:checked + .slider:before {
 .message.creative .message-header { color: var(--ai-creative); }
 .message.critic .message-header { color: var(--ai-critic); }
 .message.pragmatist .message-header { color: var(--ai-pragmatist); }
+
+.message.analyst    { color: var(--ai-analyst); }
+.message.creative   { color: var(--ai-creative); }
+.message.critic     { color: var(--ai-critic); }
+.message.pragmatist { color: var(--ai-pragmatist); }
+
+.message.analyst    { border-left: 3px solid var(--ai-analyst);    background-color: rgba(0, 217, 255, 0.05); }
+.message.creative   { border-left: 3px solid var(--ai-creative);   background-color: rgba(255, 0, 110, 0.05); }
+.message.critic     { border-left: 3px solid var(--ai-critic);     background-color: rgba(184, 69, 237, 0.05); }
+.message.pragmatist { border-left: 3px solid var(--ai-pragmatist); background-color: rgba(255, 214, 10, 0.05); }
 
 .chat-input {
     display: flex;

@@ -7,17 +7,17 @@
   --bg-hover: #23232b;
   --border: #2a2a32;
 
-  --primary: #00f5ff;
-  --secondary: #ff00ff;
-  --accent: #7b2cbf;
-  --text-primary: #e0e0e0;
-  --text-secondary: #a0a0a8;
+  --primary: #ffd60a;
+  --secondary: #ff9e00;
+  --accent: #ff006e;
+  --text-primary: #e8e8ed;
+  --text-secondary: #a8a8b0;
   
-  --gradient-primary: linear-gradient(135deg, #00f5ff 0%, #ff00ff 100%);
-  --gradient-accent: linear-gradient(135deg, #7b2cbf 0%, #00f5ff 100%);
+  --gradient-primary: linear-gradient(135deg, #ffd60a 0%, #ff9e00 100%);
+  --gradient-accent: linear-gradient(135deg, #ff006e 0%, #ffd60a 100%);
   
-  --glow-primary: 0 0 20px rgba(0, 245, 255, 0.4);
-  --glow-secondary: 0 0 20px rgba(255, 0, 255, 0.4);
+  --glow-primary: 0 0 20px rgba(255, 214, 10, 0.4);
+  --glow-secondary: 0 0 20px rgba(255, 158, 0, 0.4);
 
     /* AI Council Member Colors */
   --ai-analyst: #00d9ff;

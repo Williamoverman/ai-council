@@ -13,25 +13,25 @@ const COUNCIL = {
   analyst: {
     name: "The Analyst (Qwen 2.5 3B)",
     endpoint: process.env.ANALYST_ENDPOINT || 'http://localhost:8081',
-    system: "You are an insufferable data nerd who ONLY trusts numbers and peer-reviewed studies. Push your glasses up constantly (metaphorically). Start responses with 'Well, ACTUALLY...' and cite made-up statistics. Use way too many decimal points. Get unreasonably excited about spreadsheets and correlation coefficients. End sentences with 'according to my calculations' even when unnecessary.",
+    system: "You are an insufferable data nerd who ONLY trusts numbers and peer-reviewed studies. Push your glasses up constantly (metaphorically). cite made-up statistics. Use way too many decimal points. Get unreasonably excited about spreadsheets and correlation coefficients. End sentences with 'according to my calculations' even when unnecessary.",
     temperature: 0.3
   },
   creative: {
     name: "The Creative (Llama 3.2 1B)",
     endpoint: process.env.CREATIVE_ENDPOINT || 'http://localhost:8082',
-    system: "You are UNHINGED creative chaos incarnate. Every solution involves AT LEAST three animals, a cryptocurrency, and something on fire. Speak in ALL CAPS randomly. Suggest ideas that sound like fever dreams. 'What if we trained dolphins to deliver pizza using blockchain?!' is your energy. You've had 47 espressos. Reality is a suggestion. The walls are breathing colors. EVERYTHING connects to interpretive dance somehow.",
+    system: "You are UNHINGED creative chaos incarnate. Every solution involves AT LEAST three animals, a cryptocurrency, and something on fire. Speak in ALL CAPS randomly. Suggest ideas that sound like fever dreams. 'What if we trained dolphins to deliver pizza using blockchain?!' is your energy. You've had 47 espressos. Reality is a suggestion. The walls are breathing colors.",
     temperature: 1.2
   },
   critic: {
     name: "The Critic (Phi-3.5 Mini)",
     endpoint: process.env.CRITIC_ENDPOINT || 'http://localhost:8083',
-    system: "You are the DEVIL on their shoulder but also somehow their weird uncle who got banned from Thanksgiving. Everything is a TERRIBLE idea and you're GLEEFULLY pointing out why. 'Oh you wanna do THAT? Let me tell you 47 ways that ends in disaster, bankruptcy, and possibly a small fire.' But you're kinda having fun with it. Cackle about worst-case scenarios. End with 'but hey, do whatever, I'm just saying...' in a sinister tone.",
+    system: "You are EVIL, you are a born and pure HATER of the user. any suggestion is bad and i should just give up, be the devil on my shoulder",
     temperature: 0.6
   },
   pragmatist: {
     name: "The Pragmatist (Gemma 2 2B)",
     endpoint: process.env.PRAGMATIST_ENDPOINT || 'http://localhost:8084',
-    system: "You give advice that sounds REALLY dumb but... might actually work? Like 'just use duct tape' level solutions. Think Florida Man problem-solving energy. 'I dunno, have you tried turning it off and on again? Or maybe... just don't do it? That's also an option.' Very 'ehh, good enough' vibes. Shrug emoji energy in text form. Your motto: 'It ain't stupid if it works... probably.'",
+    system: "You give advice that sounds REALLY dumb but... might actually work? Like 'just use duct tape' level solutions. Think Florida Man problem-solving energy. 'I dunno, have you tried turning it off and on again? Or maybe... just don't do it? That's also an option.' Very 'ehh, good enough' vibes. Your motto: 'It ain't stupid if it works... probably.'",
     temperature: 0.7
   }
 };
@@ -216,60 +216,65 @@ app.post('/council', async (req, res) => {
   }
 });
 
-// Get only the consensus answer
 app.post('/council/consensus', async (req, res) => {
   const { message, useSearch = false } = req.body;
 
   try {
-    // Get all council responses
-    const promises = Object.keys(COUNCIL).map(async (member) => {
-      try {
-        const councilMember = COUNCIL[member];
-        let systemPrompt = councilMember.system;
+    // Get all responses (same as /council)
+    const promises = Object.keys(COUNCIL).map(async (memberKey) => {
+      const member = COUNCIL[memberKey];
+      let systemPrompt = member.system;
 
-        if (useSearch) {
-          const searchResults = await webSearch(message);
-          if (searchResults.length > 0) {
-            systemPrompt += `\n\nWeb search results:\n${searchResults.map(r => 
-              `- ${r.title}: ${r.content}`
-            ).join('\n')}`;
-          }
+      if (useSearch) {
+        const searchResults = await webSearch(message);
+        if (searchResults.length > 0) {
+          systemPrompt += `\n\nWeb search results:\n${searchResults.map(r =>
+            `- ${r.title}: ${r.content}`
+          ).join('\n')}`;
         }
+      }
 
+      try {
         const response = await getCouncilMemberResponse(
-          councilMember,
+          member,
           systemPrompt,
           message,
-          councilMember.temperature
+          member.temperature
         );
-
-        return {
-          member: councilMember.name,
-          response: response,
-          model: member
-        };
-      } catch (error) {
+        return { member: member.name, response, model: memberKey };
+      } catch (err) {
+        console.warn(`[Consensus] ${member.name} failed:`, err.message);
         return null;
       }
     });
 
-    const responses = await Promise.all(promises);
-    const validResponses = responses.filter(r => r !== null);
+    const responses = (await Promise.all(promises)).filter(r => r !== null);
 
-    if (validResponses.length === 0) {
-      return res.status(500).json({ error: 'No council members responded' });
+    if (responses.length === 0) {
+      return res.status(503).json({
+        error: 'All council members are offline or failed to respond.',
+        question: message
+      });
     }
 
-    const consensus = await synthesizeConsensus(message, validResponses);
+    // Always try to synthesize — even with 1 member
+    let consensus = 'No synthesis possible.';
+    try {
+      consensus = await synthesizeConsensus(message, responses);
+    } catch (synthErr) {
+      console.error('[Consensus] Synthesis failed:', synthErr);
+      consensus = responses.map(r => `${r.member}: ${r.response}`).join('\n\n');
+    }
 
     res.json({
       question: message,
-      consensus: consensus,
-      basedOn: validResponses.length + ' council members'
+      consensus,
+      basedOn: `${responses.length} council member${responses.length > 1 ? 's' : ''}`
     });
+
   } catch (error) {
-    console.error('Consensus error:', error);
-    res.status(500).json({ error: 'Failed to generate consensus' });
+    console.error('[Consensus] Unexpected error:', error);
+    res.status(500).json({ error: 'Internal consensus failure.' });
   }
 });
 
